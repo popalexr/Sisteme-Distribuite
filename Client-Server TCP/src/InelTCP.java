@@ -43,15 +43,17 @@ public class InelTCP {
                 // Thread tx
                 Thread tx = new Thread(() -> {
                     try {
-                        String line = console.readLine();
+                        while (true) {
+                            String line = console.readLine();
 
-                        String ip = inSocket.getLocalAddress().getHostAddress();
-                        int port = inSocket.getLocalPort();
+                            String ip = inSocket.getLocalAddress().getHostAddress();
+                            int port = inSocket.getLocalPort();
 
-                        String jsonPacket = String.format("{\"ip\":\"%s\",\"port\":%d,\"message\":\"%s\"}",
-                                ip, port, line);
+                            String jsonPacket = String.format("{\"ip\":\"%s\",\"port\":%d,\"message\":\"%s\"}",
+                                    ip, port, line);
 
-                        out.println(jsonPacket);
+                            out.println(jsonPacket);
+                        }
                     } catch (IOException e) {
                         System.out.println("Error: " + e.getMessage());
                     } finally {
