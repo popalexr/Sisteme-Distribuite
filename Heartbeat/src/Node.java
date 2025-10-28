@@ -21,12 +21,29 @@ public class Node {
     private final Map<Integer, Long> lastHeartbeat = new ConcurrentHashMap<>();
 
     private static final long HEARTBEAT_INTERVAL_MS = 1000;
-    private static final long FAILURE_TIMEOUT_MS = 3000;
+    private static final long FAILURE_TIMEOUT_MS = 5000;
+
+//    public Node(int myId,
+//                         int unicastPort,
+//                         String mcastIp,
+//                         int mcastPort) throws IOException {
+//        this.myId = myId;
+//        this.unicastPort = unicastPort;
+//        this.unicastSocket = new DatagramSocket(unicastPort);
+//
+//        this.mcastPort = mcastPort;
+//        this.mcastGroup = InetAddress.getByName(mcastIp);
+//        this.mcastSocket = new MulticastSocket(mcastPort);
+//        this.mcastSocket.joinGroup(new InetSocketAddress(mcastGroup, mcastPort), NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
+//
+//        lastHeartbeat.put(myId, System.currentTimeMillis());
+//    }
 
     public Node(int myId,
-                         int unicastPort,
-                         String mcastIp,
-                         int mcastPort) throws IOException {
+                int unicastPort,
+                String mcastIp,
+                int mcastPort) throws IOException {
+
         this.myId = myId;
         this.unicastPort = unicastPort;
         this.unicastSocket = new DatagramSocket(unicastPort);
@@ -34,7 +51,10 @@ public class Node {
         this.mcastPort = mcastPort;
         this.mcastGroup = InetAddress.getByName(mcastIp);
         this.mcastSocket = new MulticastSocket(mcastPort);
-        this.mcastSocket.joinGroup(new InetSocketAddress(mcastGroup, mcastPort), NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
+        this.mcastSocket.setReuseAddress(true);
+
+        // varianta simplă și portabilă:
+        this.mcastSocket.joinGroup(mcastGroup);
 
         lastHeartbeat.put(myId, System.currentTimeMillis());
     }
@@ -202,11 +222,21 @@ public class Node {
         NodeDirectory.dump();
     }
 
+//    public void shutdown() {
+//        if (!running.compareAndSet(true, false)) return;
+//        System.out.println("Shutting down node " + myId);
+//        try {
+//            mcastSocket.leaveGroup(new InetSocketAddress(mcastGroup, mcastPort), NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
+//        } catch (IOException ignored) {}
+//        mcastSocket.close();
+//        unicastSocket.close();
+//    }
+
     public void shutdown() {
         if (!running.compareAndSet(true, false)) return;
         System.out.println("Shutting down node " + myId);
         try {
-            mcastSocket.leaveGroup(new InetSocketAddress(mcastGroup, mcastPort), NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
+            mcastSocket.leaveGroup(mcastGroup);
         } catch (IOException ignored) {}
         mcastSocket.close();
         unicastSocket.close();
